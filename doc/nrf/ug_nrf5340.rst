@@ -109,7 +109,11 @@ Some samples require configuration adjustments to the :ref:`zephyr:bluetooth-hci
 
 These samples must be programmed to the application core, in the secure domain.
 
+<<<<<<< HEAD
 .. _ug_nrf5340_bulding:
+=======
+.. _ug_nrf5340_building:
+>>>>>>> samples: BLE NUS nRF53 sample
 
 Building and programming a sample
 *********************************
