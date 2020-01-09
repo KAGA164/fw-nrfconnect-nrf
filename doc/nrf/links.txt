@@ -179,6 +179,7 @@
 .. _`GPS`: https://en.wikipedia.org/wiki/Global_Positioning_System
 .. _`A-GPS`: https://en.wikipedia.org/wiki/Assisted_GPS
 .. _`NMEA`: https://www.gpsworld.com/what-exactly-is-gps-nmea-data/
+.. _`OpenAMP`: https://github.com/OpenAMP/open-amp/
 
 .. ### Links to Bluetooth specs
 
