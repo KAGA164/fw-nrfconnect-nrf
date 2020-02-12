@@ -13,7 +13,6 @@ rsource "controller/Kconfig"
 endif # CONFIG_BT_LL_NRFXLIB
 
 comment "BLE Libraries"
-rsource "Kconfig.pool"
 rsource "Kconfig.discovery"
 rsource "Kconfig.scan"
 rsource "Kconfig.link"
@@ -22,5 +21,7 @@ rsource "mesh/Kconfig"
 rsource "services/Kconfig"
 
 endif # BT
+
+rsource "Kconfig.pool"
 
 endmenu

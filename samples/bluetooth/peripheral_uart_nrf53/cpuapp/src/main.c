@@ -24,6 +24,10 @@
 #include "bt_ser.h"
 #include "rpmsg.h"
 
+#include <bluetooth/uuid.h>
+#include "gatt.h"
+#include <hal/nrf_spu.h>
+
 #define STACKSIZE CONFIG_BT_GATT_NUS_THREAD_STACK_SIZE
 #define PRIORITY 7
 
@@ -35,6 +39,22 @@
 #define UART_BUF_SIZE CONFIG_BT_GATT_NUS_UART_BUFFER_SIZE
 
 #define BT_ADDR_LE_STR_LEN 30
+
+/** @brief UUID of the NUS Service. **/
+#define NUS_UUID_SERVICE \
+	BT_UUID_128_ENCODE(0x6e400001, 0xb5a3, 0xf393, 0xe0a9, 0xe50e24dcca9e)
+
+/** @brief UUID of the TX Characteristic. **/
+#define NUS_UUID_NUS_TX_CHAR \
+	BT_UUID_128_ENCODE(0x6e400003, 0xb5a3, 0xf393, 0xe0a9, 0xe50e24dcca9e)
+
+/** @brief UUID of the RX Characteristic. **/
+#define NUS_UUID_NUS_RX_CHAR \
+	BT_UUID_128_ENCODE(0x6e400002, 0xb5a3, 0xf393, 0xe0a9, 0xe50e24dcca9e)
+
+#define BT_UUID_NUS_SERVICE   BT_UUID_DECLARE_128(NUS_UUID_SERVICE)
+#define BT_UUID_NUS_RX        BT_UUID_DECLARE_128(NUS_UUID_NUS_RX_CHAR)
+#define BT_UUID_NUS_TX        BT_UUID_DECLARE_128(NUS_UUID_NUS_TX_CHAR)
 
 static K_SEM_DEFINE(ble_init_ok, 0, 2);
 
@@ -48,34 +68,6 @@ struct uart_data_t {
 
 static K_FIFO_DEFINE(fifo_uart_tx_data);
 static K_FIFO_DEFINE(fifo_uart_rx_data);
-
-static int bt_addr_le_to_str(const bt_addr_le_t *addr, char *str,
-			     size_t len)
-{
-	char type[10];
-
-	switch (addr->type) {
-	case BT_ADDR_LE_PUBLIC:
-		strcpy(type, "public");
-		break;
-	case BT_ADDR_LE_RANDOM:
-		strcpy(type, "random");
-		break;
-	case BT_ADDR_LE_PUBLIC_ID:
-		strcpy(type, "public-id");
-		break;
-	case BT_ADDR_LE_RANDOM_ID:
-		strcpy(type, "random-id");
-		break;
-	default:
-		snprintk(type, sizeof(type), "0x%02x", addr->type);
-		break;
-	}
-
-	return snprintk(str, len, "%02X:%02X:%02X:%02X:%02X:%02X (%s)",
-			addr->a.val[5], addr->a.val[4], addr->a.val[3],
-			addr->a.val[2], addr->a.val[1], addr->a.val[0], type);
-}
 
 static void uart_cb(struct device *uart)
 {
@@ -262,10 +254,48 @@ static void configure_gpio(void)
 	}
 }
 
+static ssize_t on_receive(struct bt_conn *conn,
+			  const struct bt_gatt_attr *attr,
+			  const void *buf,
+			  u16_t len,
+			  u16_t offset,
+			  u8_t flags)
+{
+	//printk("Received data, handle %d, conn %p\n",
+	//	attr->handle, conn);
+
+	return len;
+}
+
+/* UART Service Declaration */
+BT_GATT_SERVICE_DEFINE(nus_svc,
+BT_GATT_PRIMARY_SERVICE(BT_UUID_NUS_SERVICE),
+	BT_GATT_CHARACTERISTIC(BT_UUID_NUS_TX,
+			       BT_GATT_CHRC_NOTIFY,
+			       BT_GATT_PERM_READ,
+			       NULL, NULL, NULL),
+	BT_GATT_CCC(NULL, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+	BT_GATT_CHARACTERISTIC(BT_UUID_NUS_RX,
+			       BT_GATT_CHRC_WRITE |
+			       BT_GATT_CHRC_WRITE_WITHOUT_RESP,
+			       BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+			       NULL, on_receive, NULL),
+);
+
 static void led_blink_thread(void)
 {
 	int blink_status = 0;
 	int err = 0;
+
+	NRF_DCNF->EXTCODE[0].PROTECT = 0;
+
+
+	nrf_spu_extdomain_set(NRF_SPU, 0, true, false);
+
+	for (size_t i = 0; i < 64; i++) {
+		nrf_spu_flashregion_set(NRF_SPU, i, true, 0x07, false);
+		nrf_spu_ramregion_set(NRF_SPU, i, true, 0x07, false);
+	}
 
 	ipc_register_rx_callback(bt_nus_rx_parse);
 	err = ipc_init();
@@ -285,6 +315,14 @@ static void led_blink_thread(void)
 	err = bt_nus_init();
 	if (err < 0) {
 		printk("NUS service initialization failed\n");
+		error();
+	}
+
+	printk("SVC: %p\n", &nus_svc);
+	printk("Callback addr: %p\n", on_receive);
+	err = bt_service_register(&nus_svc);
+	if (err) {
+		printk("NUS Service register error\n");
 		error();
 	}
 

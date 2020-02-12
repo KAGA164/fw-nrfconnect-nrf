@@ -9,6 +9,12 @@
 
 #include <bluetooth/addr.h>
 
+#if defined(NRF5340_XXAA_NETWORK)
+#include <bluetooth/gatt.h>
+#else
+#include "../cpuapp/src/gatt.h"
+#endif
+
 /**
  * @file
  * @defgroup bt_ser BLE Nordic UART Service serialization
@@ -130,6 +136,8 @@ int bt_nus_disconnection_evt_send(const bt_addr_le_t *addr, u8_t reason);
  */
 int bt_nus_received_evt_send(const bt_addr_le_t *addr,
 			     const u8_t *data, size_t length);
+
+int bt_service_register(struct bt_gatt_service *svc);
 
 #ifdef __cplusplus
 }

@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
 #
 
-if (CONFIG_BT)
+#if (CONFIG_BT)
   add_subdirectory(bluetooth)
-endif()
+#endif()
 
 add_subdirectory_ifdef(CONFIG_IS_SECURE_BOOTLOADER bootloader)
 add_subdirectory_ifdef(CONFIG_SECURE_BOOT bootloader/image)

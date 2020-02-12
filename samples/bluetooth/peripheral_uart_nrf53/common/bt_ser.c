@@ -13,6 +13,7 @@
 
 #if defined(NRF5340_XXAA_NETWORK)
 #include <bluetooth/services/nus.h>
+#include <bluetooth/gatt.h>
 #endif
 
 #include "bt_ser.h"
@@ -28,6 +29,7 @@ LOG_MODULE_REGISTER(bt_ser);
 
 #define BT_CMD_BT_NUS_INIT 0x01
 #define BT_CMD_GATT_NUS_SEND 0x02
+#define BT_CMD_GATT_SVC_REGISTER 0x03
 
 #define BT_EVENT_CONNECTED 0x01
 #define BT_EVENT_DISCONNECTED 0x02
@@ -87,6 +89,36 @@ __weak void bt_ready(int err)
 	LOG_INF("Bluetooth initialized, err %d.", err);
 }
 
+static int bt_cmd_gat_svc_reg(CborValue *it, CborEncoder *encoder)
+{
+	int64_t result;
+	struct bt_gatt_service *svc;
+
+	if (!cbor_value_is_integer(it) ||
+	    cbor_value_get_raw_integer(it, &result) != CborNoError) {
+		return -EINVAL;
+	}
+
+	svc = (struct bt_gatt_service *)((int)result);
+
+	printk("SVC: %p\n", svc);
+
+	for (size_t i = 0; i < svc->attr_count; i++) {
+		if (bt_uuid_cmp(svc->attrs[i].uuid, BT_UUID_GATT_PRIMARY) == 0) {
+			svc->attrs[i].read = bt_gatt_attr_read_service;
+		} else if (bt_uuid_cmp(svc->attrs[i].uuid, BT_UUID_GATT_CHRC) == 0) {
+			svc->attrs[i].read = bt_gatt_attr_read_chrc;
+		} else if (bt_uuid_cmp(svc->attrs[i].uuid, BT_UUID_GATT_CCC) == 0) {
+			svc->attrs[i].read = bt_gatt_attr_read_ccc;
+			svc->attrs[i].write = bt_gatt_attr_write_ccc;
+		} else {
+			/* Do nothing. */
+		}
+	}
+
+	return bt_gatt_service_register(svc);
+}
+
 static int bt_cmd_bt_nus_init(CborValue *it, CborEncoder *encoder)
 {
 	int err;
@@ -115,6 +147,7 @@ static int bt_cmd_gatt_nus_exec(CborValue *it, CborEncoder *encoder)
 static const struct cmd_list ser_cmd_list[] = {
 	{BT_CMD_GATT_NUS_SEND, bt_cmd_gatt_nus_exec},
 	{BT_CMD_BT_NUS_INIT, bt_cmd_bt_nus_init},
+	{BT_CMD_GATT_SVC_REGISTER, bt_cmd_gat_svc_reg}
 };
 #else
 static const struct cmd_list ser_cmd_list[0];
@@ -187,6 +220,49 @@ error:
 	LOG_ERR("Encoding %0x02x command error %d", BT_CMD_BT_NUS_INIT, err);
 	return err;
 
+}
+
+static int bt_svc_register(struct bt_gatt_service *svc,
+			  u8_t *buf, size_t *buf_len)
+{
+	CborError err;
+	CborEncoder encoder;
+	CborEncoder array;
+
+	cbor_encoder_init(&encoder, buf, *buf_len, 0);
+	err = cbor_encoder_create_array(&encoder, &array,
+					BT_CMD_GATT_NUS_SEND_ARRAY_SIZE);
+	if (err) {
+		goto error;
+	}
+
+	err = cbor_encode_simple_value(&array, BT_TYPE_CMD);
+	if (err) {
+		goto error;
+	}
+
+	err = cbor_encode_simple_value(&array, BT_CMD_GATT_SVC_REGISTER);
+	if (err) {
+		goto error;
+	}
+
+	err = cbor_encode_int(&array, (int)svc);
+	if (err) {
+		goto error;
+	}
+
+	err = cbor_encoder_close_container(&encoder, &array);
+	if (err) {
+		goto error;
+	}
+
+	*buf_len = cbor_encoder_get_buffer_size(&encoder, buf);
+
+	return 0;
+
+error:
+	LOG_ERR("Encoding 0x%02x command error %d", BT_CMD_GATT_NUS_SEND, err);
+	return err;
 }
 
 static int bt_send_encode(const u8_t *data, u16_t len,
@@ -609,4 +685,23 @@ int bt_nus_received_evt_send(const bt_addr_le_t *addr, const u8_t *data,
 	}
 
 	return evt_send(addr, BT_EVENT_DATA_RECEIVED, data, length);
+}
+
+int bt_service_register(struct bt_gatt_service *svc)
+{
+	int err;
+	u8_t buf[APP_TO_NETWORK_MAX_PKT_SIZE];
+	size_t buf_len = sizeof(buf);
+
+	if (!svc) {
+		return -EINVAL;
+	}
+
+	err = bt_svc_register(svc, buf, &buf_len);
+	if (err) {
+		return err;
+	}
+
+	return cmd_send(buf, buf_len, bt_send_rsp);
+
 }
