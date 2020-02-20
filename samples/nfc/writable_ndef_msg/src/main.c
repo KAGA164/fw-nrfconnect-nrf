@@ -36,10 +36,13 @@ enum {
 	FLASH_BUF_PREP_FINISHED,
 	FLASH_WRITE_STARTED,
 };
-static atomic_t op_flags;
-static u8_t flash_buf[CONFIG_NDEF_FILE_SIZE]; /**< Buffer for flash update. */
-static u8_t flash_buf_len; /**< Length of the flash buffer. */
 
+/*
+static atomic_t op_flags;
+static u8_t flash_buf[CONFIG_NDEF_FILE_SIZE];
+static u8_t flash_buf_len;
+*/
+/*
 static void flash_buffer_prepare(size_t data_length)
 {
 	if (atomic_cas(&op_flags, FLASH_WRITE_FINISHED,
@@ -53,7 +56,7 @@ static void flash_buffer_prepare(size_t data_length)
 	}
 
 }
-
+*/
 /**
  * @brief Callback function for handling NFC events.
  */
@@ -83,7 +86,7 @@ static void nfc_callback(void *context,
 	case NFC_T4T_EVENT_NDEF_UPDATED:
 		if (data_length > 0) {
 			dk_set_led_on(NFC_WRITE_LED);
-			flash_buffer_prepare(data_length);
+			//flash_buffer_prepare(data_length);
 		}
 		break;
 
@@ -166,18 +169,18 @@ int main(void)
 	printk("Starting NFC Writable NDEF Message example\n");
 
 	while (true) {
-		if (atomic_cas(&op_flags, FLASH_BUF_PREP_FINISHED,
-				FLASH_WRITE_STARTED)) {
-			if (ndef_file_update(flash_buf, flash_buf_len) < 0) {
-				printk("Cannot flash NDEF message!\n");
-			} else {
-				printk("NDEF message successfully flashed.\n");
-			}
+//		if (atomic_cas(&op_flags, FLASH_BUF_PREP_FINISHED,
+//				FLASH_WRITE_STARTED)) {
+//			if (ndef_file_update(flash_buf, flash_buf_len) < 0) {
+//				printk("Cannot flash NDEF message!\n");
+//			} else {
+//				printk("NDEF message successfully flashed.\n");
+//		}
+//
+	//		atomic_set(&op_flags, FLASH_WRITE_FINISHED);
+//	 }
 
-			atomic_set(&op_flags, FLASH_WRITE_FINISHED);
-		}
-
-		__WFE();
+		//__WFE();
 	}
 
 fail:

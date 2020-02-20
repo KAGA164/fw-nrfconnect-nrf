@@ -38,10 +38,10 @@ nrfx_err_t nfc_platform_setup(void)
 	clock = device_get_binding(DT_INST_0_NORDIC_NRF_CLOCK_LABEL);
 	__ASSERT_NO_MSG(clock);
 
-	IRQ_CONNECT(NFCT_IRQn, CONFIG_NFCT_IRQ_PRIORITY,
-			   nrfx_nfct_irq_handler, NULL,  0);
-	IRQ_CONNECT(NFC_TIMER_IRQn, CONFIG_NFCT_IRQ_PRIORITY,
-			   nfc_timer_irq_handler, NULL,  0);
+	IRQ_DIRECT_CONNECT(NFCT_IRQn, -1,
+			   nrfx_nfct_irq_handler,  0);
+	IRQ_DIRECT_CONNECT(NFC_TIMER_IRQn, -1,
+			   nfc_timer_irq_handler,  0);
 
 	LOG_DBG("NFC platform initialized");
 	return NRFX_SUCCESS;

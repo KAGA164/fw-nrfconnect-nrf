@@ -31,14 +31,17 @@ manifest:
       url-base: https://github.com/ARMmbed
     - name: civetweb
       url-base: https://github.com/civetweb
+    - name: kaga
+      url-base: https://github.com/KAGA164
 
   # The list of external projects for the nRF Connect SDK.
   #
   projects:
     - name: zephyr
+      remote: kaga
       repo-path: fw-nrfconnect-zephyr
       west-commands: scripts/west-commands.yml
-      revision: v2.1.99-ncs1
+      revision: nfc-jtrace-test
     - name: segger
       revision: 6fcf61606d6012d2c44129edc033f59331e268bc
       path: modules/debug/segger
