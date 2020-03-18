@@ -20,4 +20,10 @@ config BT_GATT_NUS_UART_BUFFER_SIZE
 	help
 	  Size of the payload buffer in each RX and TX FIFO element
 
+config BT_GATT_NUS_UART_RX_WAIT_TIME
+	int "Wait for UART RX complete event time"
+	default 50
+	help
+	  Wait for RX complete event time in milliseconds
+
 endmenu

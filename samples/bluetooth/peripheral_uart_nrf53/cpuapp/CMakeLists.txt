@@ -10,7 +10,9 @@ set(NRF_SUPPORTED_BOARDS
   nrf5340_dk_nrf5340_cpuappns
 )
 
-include(../../../../cmake/boilerplate.cmake)
+set(DTC_OVERLAY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/prj.overlay")
+
+include($ENV{ZEPHYR_BASE}/../nrf/cmake/boilerplate.cmake)
 include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
 project(NONE)
 
