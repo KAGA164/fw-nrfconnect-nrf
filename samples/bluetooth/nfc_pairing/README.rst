@@ -1,16 +1,17 @@
 .. _nfc_pairing:
 
-Bluetooth: NFC Pairing Reference
-################################
+Bluetooth: NFC pairing
+######################
 
-The NFC Pairing Reference sample shows how to use BLE Connection Handover pairing using an NFC tag.
-The application shows shows the usage of :ref:`_nfc_pair`.
-The example can be used to test the touch-to-pair feature with Nordic devices with NFC Reader or a other NFC Poller devices, for example a mobile phone.
+The NFC pairing sample demonstrates Bluetooth LE Connection Handover pairing using an NFC tag.
+It can be used to test the touch-to-pair feature between Nordic Semiconductor's devices and an NFC reader or another NFC polling device, for example, a mobile phone.
 
-This application uses minimal Bluetooth functionalities. It has only Device Information service.
+The sample shows the usage of NFC NDEF :ref:`nfc_pair`.
+It uses minimal Bluetooth functionality and implements only the Device Information Service.
 
-It allows to perform pairing in one of the following mode:
-   * LE Secure OOB
+The sample supports pairing in one of the following mode:
+
+* LE Secure Connections OOB pairing
 
 Overview
 ********
@@ -18,11 +19,11 @@ Overview
 When the application starts, it initializes and starts the NFCT peripheral, which is used for pairing.
 The application does not start advertising immediately, but only when the NFC tag is read by an NFC polling device, for example a smartphone or a tablet with NFC support.
 The message that the tag sends to the NFC device contains data required to initiate pairing.
-To start the NFC data transfer, the NFC device must touch the NFC antenna that is connected to the Development board.
+To start the NFC data transfer, the NFC device must touch the NFC antenna that is connected to the development kit.
 
-After reading the tag, the device can pair with the device which is advertising.
-Connection state of the device is signalled by LEDs.
-When the connection is lost due to timeout, the library automatically triggers direct advertising.
+After reading the tag, the device can pair with the device that is advertising.
+The connection state of the device is signaled by LEDs.
+When the connection is lost due to a time-out, the library automatically triggers direct advertising.
 
 Requirements
 ************
@@ -33,15 +34,16 @@ Requirements
   * |nRF52840DK|
   * |nRF52DK|
 
-* NFC Poller device, Smartphone or tablet
+* NFC polling device (for example, a smartphone or a tablet with NFC support)
 
 User interface
 **************
 
 LED 1:
-   Indicates Bluetooth Connection established
-LED_2:
-   Indicates if an NFC field is present.
+   Indicates that a Bluetooth connection is established.
+
+LED 2:
+   Indicates that an NFC field is present.
 
 Building and running
 ********************
@@ -56,19 +58,18 @@ Testing
 After programming the sample to your board, test it by performing the following steps:
 
 1. Touch the NFC antenna with the smartphone or tablet and observe that LED 2 is lit.
-#. Confirm pairing with 'Nordic_NFC_pairing' in a pop-up windows on the smartphone or tablet and observe that LED1 is lit.
-#. Move the smartphone/tablet away from the NFC antenna and observe that LED 2
-   turns off.
+#. Confirm pairing with ``Nordic_NFC_pairing`` in a pop-up windows on the smartphone or tablet and observe that LED 1 lights up.
+#. Move the smartphone or tablet away from the NFC antenna and observe that LED 2 turns off.
 
 Dependencies
 ************
 
 This sample uses the following |NCS| libraries:
 
-* :ref:`_nfc_ndef_le_oob`
-* :ref:`_nfc_ndef_pair_msg`
-* :ref:`_nfc_ch`
-* :ref:`_dk_buttons_and_leds_readme`
+* :ref:`nfc_ndef_le_oob`
+* :ref:`nfc_pair`
+* :ref:`nfc_ch`
+* :ref:`dk_buttons_and_leds_readme`
 
 In addition, it uses the Type 4 Tag library from nrfxlib:
 

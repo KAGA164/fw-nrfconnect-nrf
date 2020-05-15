@@ -1,16 +1,20 @@
 .. _nfc_pair:
 
-NFC Pair messages
-#################
+Pairing messages
+################
 
-The NFC Pair message contains the Connection Handover Record, which is used to establish connection and pair with other Bluetooth Device.
+Pairing messages contain :ref:`nfc_ch`.
+They are used to establish an NFC connection and pair with other Bluetooth devices.
 
-Module supporting encoding of the following messages:
-   * Generic OOB message
-   * Handover Select message
-   * Handover Request message
-   * Handover Mediation message
-   * Handover Initiate message
+The library provides functions for encoding the following messages:
+
+* Generic OOB message
+* Handover Select message
+* Handover Request message
+* Handover Mediation message
+* Handover Initiate message
+
+This library is used in the :ref:`nfc_pairing` sample.
 
 API documentation
 *****************

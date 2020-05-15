@@ -1,21 +1,24 @@
 .. _nfc_ch:
 
-Connection Handover
-###################
+Connection Handover records
+###########################
 
-The Connection Handover defines the NDEF records and the corresponding message structure that supports negotiation and activation of an alternative communication carrier.
+Connection Handover records and the corresponding :ref:`nfc_pair` are used to negotiate and activate an alternative communication carrier.
 The negotiated communication carrier can then be used to perform certain activities between the two devices, such as Bluetooth pairing.
-The Connection Hanover module provides functions for creating and encoding Handover Connection records.
 
-Module supporting encoding of the following Connection Hanover Records:
-    * Handover Request Record
-    * Handover Select Record
-    * Handover Mediation Record
-    * Handover Initiate Record
-    * Handover Carrier Record
-    * Local Records:
-        * Alternative Carrier Record
-	* Collision Resolution Record
+The Connection Handover library provides functions for creating and encoding the following Connection Handover records:
+
+* Handover Request record
+* Handover Select record
+* Handover Mediation record
+* Handover Initiate record
+* Handover Carrier record
+* Local records:
+
+  * Alternative Carrier record
+  * Collision Resolution record
+
+The Connection Handover library is used in the :ref:`nfc_pairing` sample.
 
 API documentation
 *****************
