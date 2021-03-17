@@ -18,20 +18,21 @@
 #include <net/nrf_cloud.h>
 #include "aggregator.h"
 
-/* Thinghy advertisement UUID */
-#define BT_UUID_THINGY                                                         \
-	BT_UUID_DECLARE_128(0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B,    \
-			    0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF)
+/** @brief Temperature Service UUID. */
+#define BT_UUID_CUSTOM_TEMP_VAL \
+	BT_UUID_128_ENCODE(0x00001652, 0x741b, 0x4f7d, 0xadca, 0xe83cefb68df0)
 
-/* Thingy service UUID */
-#define BT_UUID_TMS                                                            \
-	BT_UUID_DECLARE_128(0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B,    \
-			    0x33, 0x49, 0x35, 0x9B, 0x00, 0x04, 0x68, 0xEF)
+/** @brief Temperature values Characteristic UUID. */
+#define BT_UUID_CUSTOM_TEMP_VALUE_VAL \
+	BT_UUID_128_ENCODE(0x00001653, 0x741b, 0x4f7d, 0xadca, 0xe83cefb68df0)
 
-/* Thingy characteristic UUID */
-#define BT_UUID_TOC                                                            \
-	BT_UUID_DECLARE_128(0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B,    \
-			    0x33, 0x49, 0x35, 0x9B, 0x03, 0x04, 0x68, 0xEF)
+/** @brief Measurement interval Characteristic UUID. */
+#define BT_UUID_CUSTOM_TEMP_INTERVAL_VAL \
+	BT_UUID_128_ENCODE(0x00001654, 0x741b, 0x4f7d, 0xadca, 0xe83cefb68df0)
+
+#define BT_UUID_CUSTOM_TEMP          BT_UUID_DECLARE_128(BT_UUID_CUSTOM_TEMP_VAL)
+#define BT_UUID_CUSTOM_TEMP_VALUE    BT_UUID_DECLARE_128(BT_UUID_CUSTOM_TEMP_VALUE_VAL)
+#define BT_UUID_CUSTOM_TEMP_INTERVAL BT_UUID_DECLARE_128(BT_UUID_CUSTOM_TEMP_INTERVAL_VAL)
 
 extern void alarm(void);
 
@@ -39,24 +40,31 @@ static uint8_t on_received(struct bt_conn *conn,
 			struct bt_gatt_subscribe_params *params,
 			const void *data, uint16_t length)
 {
+	static uint8_t count;
+	uint32_t temp;
+
 	if (length > 0) {
-		printk("Orientation: %x\n", ((uint8_t *)data)[0]);
+		temp = sys_get_le32((uint8_t *)data);
+		printk("Temperature: %d.%d C\n", temp / 10, temp % 10);
+		
 		struct sensor_data in_data;
 
-		in_data.type = THINGY_ORIENTATION;
-		in_data.length = 1;
-		in_data.data[0] = ((uint8_t *)data)[0];
+		in_data.type = TEMPERATURE;
+		in_data.length = sizeof(temp);
+		memcpy(in_data.data, &temp, sizeof(temp));
 
 		if (aggregator_put(in_data) != 0) {
 			printk("Was not able to insert Thingy orientation data into aggregator.\n");
 		}
-		/* If the thingy is upside down, trigger an alarm. */
-		if (((uint8_t *)data)[0] == 3) {
+
+		count++;
+
+		if (count >= 5) {
+			count = 0;
 			alarm();
 		}
-
 	} else {
-		printk("Orientation notification with 0 length\n");
+		printk("Temperature notification with 0 length\n");
 	}
 	return BT_GATT_ITER_CONTINUE;
 }
@@ -74,15 +82,15 @@ static void discovery_completed(struct bt_gatt_dm *disc, void *ctx)
 	const struct bt_gatt_dm_attr *chrc;
 	const struct bt_gatt_dm_attr *desc;
 
-	chrc = bt_gatt_dm_char_by_uuid(disc, BT_UUID_TOC);
+	chrc = bt_gatt_dm_char_by_uuid(disc, BT_UUID_CUSTOM_TEMP_VALUE);
 	if (!chrc) {
-		printk("Missing Thingy orientation characteristic\n");
+		printk("Missing Temperature value characteristic\n");
 		goto release;
 	}
 
-	desc = bt_gatt_dm_desc_by_uuid(disc, chrc, BT_UUID_TOC);
+	desc = bt_gatt_dm_desc_by_uuid(disc, chrc, BT_UUID_CUSTOM_TEMP_VALUE);
 	if (!desc) {
-		printk("Missing Thingy orientation char value descriptor\n");
+		printk("Missing Temperature value char value descriptor\n");
 		goto release;
 	}
 
@@ -90,7 +98,7 @@ static void discovery_completed(struct bt_gatt_dm *disc, void *ctx)
 
 	desc = bt_gatt_dm_desc_by_uuid(disc, chrc, BT_UUID_GATT_CCC);
 	if (!desc) {
-		printk("Missing Thingy orientation char CCC descriptor\n");
+		printk("Missing Temperature value char CCC descriptor\n");
 		goto release;
 	}
 
@@ -110,7 +118,7 @@ release:
 
 static void discovery_service_not_found(struct bt_conn *conn, void *ctx)
 {
-	printk("Thingy orientation service not found!\n");
+	printk("Temperature service not found!\n");
 }
 
 static void discovery_error_found(struct bt_conn *conn, int err, void *ctx)
@@ -138,7 +146,7 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 
 	printk("Connected: %s\n", addr);
 
-	err = bt_gatt_dm_start(conn, BT_UUID_TMS, &discovery_cb, NULL);
+	err = bt_gatt_dm_start(conn, BT_UUID_CUSTOM_TEMP, &discovery_cb, NULL);
 	if (err) {
 		printk("Could not start service discovery, err %d\n", err);
 	}
@@ -186,7 +194,7 @@ static void scan_start(void)
 	bt_scan_init(&scan_init);
 	bt_scan_cb_register(&scan_cb);
 
-	err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_UUID, BT_UUID_THINGY);
+	err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_UUID, BT_UUID_CUSTOM_TEMP);
 	if (err) {
 		printk("Scanning filters cannot be set\n");
 		return;

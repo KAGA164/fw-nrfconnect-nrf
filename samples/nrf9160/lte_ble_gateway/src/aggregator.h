@@ -26,7 +26,7 @@
 #define ENTRY_MAX_SIZE (GPS_NMEA_SENTENCE_MAX_LENGTH + 4)
 #define FIFO_MAX_ELEMENT_COUNT 12
 
-enum sensor_data_type { THINGY_ORIENTATION, GPS_POSITION };
+enum sensor_data_type { TEMPERATURE, GPS_POSITION };
 
 struct sensor_data {
 	uint8_t length;
