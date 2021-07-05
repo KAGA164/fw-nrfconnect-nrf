@@ -37,6 +37,8 @@ manifest:
       url-base: https://github.com/PelionIoT
     - name: memfault
       url-base: https://github.com/memfault
+    - name: kaga
+      url-base: https://github.com/KAGA164
 
   # If not otherwise specified, the projects below should be obtained
   # from the ncs remote.
@@ -55,8 +57,9 @@ manifest:
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/introduction/index.html
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
     - name: zephyr
-      repo-path: sdk-zephyr
-      revision: v2.6.0-rc1-ncs1
+      remote: kaga
+      repo-path: fw-nrfconnect-zephyr
+      revision: 4ce902031ce33e4447139ad39236fcf5fdc3cb4a
       import:
         # In addition to the zephyr repository itself, NCS also
         # imports the contents of zephyr/west.yml at the above
@@ -112,9 +115,10 @@ manifest:
       revision: 5a6bf2fa11503ea0a3ef2b42a8afeed43053b6b9
       path: bootloader/mcuboot
     - name: nrfxlib
-      repo-path: sdk-nrfxlib
+      remote: kaga
+      repo-path: nrfxlib
       path: nrfxlib
-      revision: 1f3ad531bf48d4241b6c60f5c521364a0785bfa7
+      revision: e6cf5bdabdbcb540b1d56a0c86ec297228f5c5b7
     - name: trusted-firmware-m
       repo-path: sdk-trusted-firmware-m
       path: modules/tee/tfm
