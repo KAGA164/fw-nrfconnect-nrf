@@ -103,12 +103,7 @@ if (CONFIG_NCS_SAMPLE_REMOTE_SHELL_CHILD_IMAGE)
 endif()
 
 if (CONFIG_NCS_INCLUDE_RPMSG_CHILD_IMAGE)
-
-  if (CONFIG_NCS_SAMPLE_MULTIPROTOCOL_BT_RPC_CHILD_IMAGE)
-    set(CHILD_IMAGE_NAME "multiprotocol_rpc_host")
-    set(CHILD_IMAGE_PATH "${NRF_DIR}/samples/nrf5340/multiprotocol_rpc_host")
-
-  elseif (CONFIG_NCS_SAMPLE_MULTIPROTOCOL_RPMSG_CHILD_IMAGE)
+  if (CONFIG_NCS_SAMPLE_MULTIPROTOCOL_RPMSG_CHILD_IMAGE)
     set(CHILD_IMAGE_NAME "multiprotocol_rpmsg")
     set(CHILD_IMAGE_PATH "${NRF_DIR}/samples/nrf5340/multiprotocol_rpmsg")
 
